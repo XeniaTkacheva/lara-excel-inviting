@@ -26,8 +26,8 @@ class StoreTenantRequest extends FormRequest
         return [
             'firstname' => ['required'],
             'email' => ['required', 'email', 'unique:users'],
-            'username' => ['required', 'unique:users', 'alpha_num'],
-            'domain' => ['required', 'unique:users', 'alpha_num'],
+            'username' => ['required', 'alpha_num', 'unique:users'],
+            'domain' => ['required', 'alpha_num', 'unique:users'],
         ];
     }
 }

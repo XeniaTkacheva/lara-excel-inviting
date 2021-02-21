@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\UpdateTenantRequest;
 use App\Http\Requests\StoreTenantRequest;
 use App\Models\User;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class TenantController extends Controller
@@ -32,58 +34,52 @@ class TenantController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @param StoreTenantRequest $request
+     * @return RedirectResponse
      */
     public function store(StoreTenantRequest $request)
     {
         User::create($request->validated() + ['role_id' => 2, 'password' => 'secret']);
 
-        return  redirect()->route('tenants.index');
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-        //
+        return redirect()->route('tenants.index');
     }
 
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  int  $id
+     * @param User $tenant
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function edit(User $tenant)
     {
-        //
+        return view('tenants.edit', compact('tenant'));
     }
 
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @param UpdateTenantRequest $request
+     * @param User $tenant
+     * @return RedirectResponse
      */
-    public function update(Request $request, $id)
+    public function update(UpdateTenantRequest $request, User $tenant)
     {
-        //
+        $tenant->update($request->validated());
+
+        return redirect()->route('tenants.index');
     }
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @param User $tenant
+     * @return RedirectResponse
+     * @throws \Exception
      */
-    public function destroy($id)
+    public function destroy(User $tenant)
     {
-        //
+        $tenant->delete();
+
+        return redirect()->route('tenants.index');
     }
 }
