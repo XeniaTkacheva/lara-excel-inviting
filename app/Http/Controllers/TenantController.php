@@ -5,15 +5,16 @@ namespace App\Http\Controllers;
 use App\Http\Requests\UpdateTenantRequest;
 use App\Http\Requests\StoreTenantRequest;
 use App\Models\User;
+use App\Notifications\TenantInviteNotification;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\URL;
 
 class TenantController extends Controller
 {
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View|\Illuminate\Http\Response
      */
     public function index()
     {
@@ -24,7 +25,7 @@ class TenantController extends Controller
     /**
      * Show the form for creating a new resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
      */
     public function create()
     {
@@ -39,7 +40,12 @@ class TenantController extends Controller
      */
     public function store(StoreTenantRequest $request)
     {
-        User::create($request->validated() + ['role_id' => 2, 'password' => 'secret']);
+        $user = User::create($request->validated()
+            + ['role_id' => 2, 'password' => 'secret']);
+
+        $url = URL::signedRoute('invitation', $user);
+
+        $user->notify(new TenantInviteNotification($url));
 
         return redirect()->route('tenants.index');
     }
@@ -48,7 +54,7 @@ class TenantController extends Controller
      * Show the form for editing the specified resource.
      *
      * @param User $tenant
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
      */
     public function edit(User $tenant)
     {
@@ -81,5 +87,22 @@ class TenantController extends Controller
         $tenant->delete();
 
         return redirect()->route('tenants.index');
+    }
+
+    /**
+     *
+     * @param User $user
+     * @return RedirectResponse
+     */
+    protected function invitation(User $user)
+    {
+        if (!request()->hasValidSignature() || $user->password != 'secret') {
+            abort(401);
+        }
+        $user->update(['email_verified_at' => 'now']);
+
+        auth()->login($user);
+
+        return redirect()->route('home');
     }
 }

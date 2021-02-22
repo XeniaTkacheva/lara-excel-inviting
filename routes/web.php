@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\SetPasswordController;
 use App\Http\Controllers\TenantController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -25,4 +26,8 @@ Auth::routes(['verify' => true]);
 Route::group(['middleware' => ['auth', 'verified']], function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
     Route::resource('/tenants', TenantController::class);
+    Route::get('setpassword', [SetPasswordController::class, 'create'])->name('setpassword');
+    Route::post('setpassword', [SetPasswordController::class, 'store'])->name('setpassword.store');
 });
+
+Route::get('invitation/{user}', [TenantController::class, 'invitation'])->name('invitation');
